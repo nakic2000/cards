@@ -87,8 +87,8 @@
   <main>
     <h1>Random Four Cards</h1>
     <div id="hand" aria-live="polite" aria-atomic="true"></div>
-    <button id="deal" type="button">Deal again</button>
     <button id="stop-card" type="button">Stop Card</button>
+    <button id="deal" type="button">Deal again</button>
   </main>
 
   <script>
@@ -101,6 +101,7 @@
     const hand = document.getElementById('hand');
     const stopButton = document.getElementById('stop-card');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const spinInterval = 500;
     let replacementTimers = [];
     let nextSlotToStop = 0;
 
@@ -126,9 +127,12 @@
       outgoingCard.setAttribute('aria-hidden', 'true');
       slot.append(outgoingCard);
 
-      const timing = { duration: 450, easing: 'ease-in-out' };
+      const timing = { duration: spinInterval, easing: 'linear' };
       incomingCard.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], timing);
-      const exit = outgoingCard.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], timing);
+      const exit = outgoingCard.animate(
+        [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
+        { ...timing, fill: 'forwards' }
+      );
       exit.onfinish = () => {
         if (slot.firstElementChild !== outgoingCard) outgoingCard.remove();
       };
@@ -150,10 +154,10 @@
       replacementTimers = slots.map((slot, index) => {
         function updateSlot() {
           replaceCard(slot);
-          replacementTimers[index] = setTimeout(updateSlot, 500);
+          replacementTimers[index] = setTimeout(updateSlot, spinInterval);
         }
 
-        return setTimeout(updateSlot, (index + 1) * 100);
+        return setTimeout(updateSlot, 700 - index * 100);
       });
     }
 
