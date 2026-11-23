@@ -728,10 +728,10 @@
   <div class="container">
     <header>
       <div class="header-badge">
-        <span>Standard 52-Card Deck &bull; Auto Mode Enabled</span>
+        <span>Standard 52-Card Deck</span>
       </div>
       <h1>The 52 Playing Cards</h1>
-      <p class="subtitle">Complete 52-card deck with authentic court illustrations for Jacks, Queens, and Kings. Auto Mode is active to automatically manage dealing, presentation, and responsive row fitting.</p>
+      <p class="subtitle">Complete 52-card deck with authentic court illustrations for Jacks, Queens, and Kings.</p>
     </header>
 
     <!-- Auto Mode Live Status Banner -->
@@ -739,12 +739,12 @@
       <div class="auto-mode-info">
         <div class="auto-pulse-dot" id="auto-dot"></div>
         <div>
-          <span class="auto-status-text" id="auto-status-title">⚡ Auto Mode: Active</span>
-          <span class="auto-status-step" id="auto-status-step">Running automated deck showcase...</span>
+          <span class="auto-status-text" id="auto-status-title">⚪ Auto Mode: Off</span>
+          <span class="auto-status-step" id="auto-status-step">Manual control enabled.</span>
         </div>
       </div>
       <div class="auto-controls-mini">
-        <button class="mini-btn" id="btn-auto-pause">⏸ Pause</button>
+        <button class="mini-btn" id="btn-auto-pause">▶ Resume</button>
         <button class="mini-btn" id="btn-auto-redeal">🔄 Re-deal</button>
         <button class="mini-btn active" id="btn-speed-toggle">1x Speed</button>
         <button class="mini-btn" id="btn-sound-toggle">🔊 Audio On</button>
@@ -796,8 +796,8 @@
 
       <!-- Actions -->
       <div class="control-group">
-        <button class="btn action-btn btn-auto-toggle running" id="btn-toggle-auto-mode" title="Toggle Auto Mode on/off">
-          ⚡ Auto Mode: ON
+        <button class="btn action-btn btn-auto-toggle" id="btn-toggle-auto-mode" title="Toggle Auto Mode on/off">
+          ⚪ Auto Mode: OFF
         </button>
         <button class="action-btn" id="btn-shuffle" title="Shuffle deck">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -988,7 +988,7 @@
     let areAllFlipped = false;
 
     // Auto Mode Engine State
-    let isAutoModeActive = true;
+    let isAutoModeActive = false;
     let isAutoPaused = false;
     let autoSpeedMultiplier = 1; // 1x, 2x, 0.5x
     let autoTimer = null;
@@ -1295,6 +1295,7 @@
         btnToggleAutoMode.textContent = '⚡ Auto Mode: ON';
         autoBanner.style.display = 'flex';
         autoDot.style.background = '#10b981';
+        autoDot.style.animation = '';
         btnAutoPause.textContent = '⏸ Pause';
         startAutoEngineLoop();
       } else {
@@ -1303,6 +1304,7 @@
         btnToggleAutoMode.textContent = '⚪ Auto Mode: OFF';
         setAutoStatus('⚪ Auto Mode: Off', 'Manual control enabled.');
         autoDot.style.background = '#94a3b8';
+        autoDot.style.animation = 'none';
         btnAutoPause.textContent = '▶ Resume';
         document.querySelectorAll('.card-item.spotlight').forEach(c => c.classList.remove('spotlight'));
         document.querySelectorAll('.card-item').forEach(c => c.style.opacity = '1');
@@ -1331,6 +1333,10 @@
     });
 
     btnAutoRedeal.addEventListener('click', () => {
+      if (!isAutoModeActive) {
+        toggleAutoMode(true);
+        return;
+      }
       clearTimeout(autoTimer);
       isAutoPaused = false;
       btnAutoPause.textContent = '⏸ Pause';
@@ -1469,11 +1475,8 @@
       btnThemeToggle.textContent = theme.label;
     });
 
-    // Start in Auto Mode
-    renderDeck(false);
-    setTimeout(() => {
-      startAutoEngineLoop();
-    }, 400);
+    renderDeck();
+    toggleAutoMode(false);
   </script>
 </body>
 </html>
