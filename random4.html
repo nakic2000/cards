@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Four Cards</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(ellipse at top, #244b3b, #091b14 80%);
+      color: #f7f4e8;
+      font-family: system-ui, sans-serif;
+    }
+
+    main {
+      width: min(44rem, calc(100% - 2rem));
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 2rem;
+      font: 700 clamp(2rem, 5vw, 3.5rem) Georgia, serif;
+    }
+
+    #hand {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(0.5rem, 2vw, 1.25rem);
+      margin-bottom: 2rem;
+    }
+
+    #hand img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 167.087 / 242.667;
+      border-radius: 5%;
+      background: white;
+      box-shadow: 0 8px 20px #0006;
+    }
+
+    .card-slot {
+      position: relative;
+      overflow: hidden;
+      border-radius: 5%;
+      box-shadow: 0 8px 20px #0006;
+    }
+
+    #hand .card-slot img {
+      box-shadow: none;
+    }
+
+    .card-slot .outgoing-card {
+      position: absolute;
+      inset: 0;
+    }
+
+    button {
+      padding: 0.75rem 1.25rem;
+      border: 0;
+      border-radius: 0.5rem;
+      background: #efce73;
+      color: #18281e;
+      font: 700 1rem system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      background: #ffe097;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    button:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 4px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Random Four Cards</h1>
+    <div id="hand" aria-live="polite" aria-atomic="true"></div>
+    <button id="deal" type="button">Deal again</button>
+    <button id="stop-card" type="button">Stop Card</button>
+  </main>
+
+  <script>
+    const suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
+    const ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'];
+    const deck = suits.flatMap(suit => ranks.map(rank => ({
+      name: `${rank} of ${suit}`,
+      imagePath: `cards/${rank.toLowerCase()}_of_${suit.toLowerCase()}.svg`
+    })));
+    const hand = document.getElementById('hand');
+    const stopButton = document.getElementById('stop-card');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let replacementTimers = [];
+    let nextSlotToStop = 0;
+
+    function drawCard(cards) {
+      const index = Math.floor(Math.random() * cards.length);
+      const [card] = cards.splice(index, 1);
+      const image = document.createElement('img');
+      image.src = card.imagePath;
+      image.alt = card.name;
+      return image;
+    }
+
+    function replaceCard(slot) {
+      const outgoingCard = slot.firstElementChild;
+      const displayedNames = new Set(Array.from(hand.querySelectorAll('img'), image => image.alt));
+      const availableCards = deck.filter(card => !displayedNames.has(card.name));
+      const incomingCard = drawCard(availableCards);
+      slot.replaceChildren(incomingCard);
+
+      if (reducedMotion.matches) return;
+
+      outgoingCard.classList.add('outgoing-card');
+      outgoingCard.setAttribute('aria-hidden', 'true');
+      slot.append(outgoingCard);
+
+      const timing = { duration: 450, easing: 'ease-in-out' };
+      incomingCard.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], timing);
+      const exit = outgoingCard.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], timing);
+      exit.onfinish = () => {
+        if (slot.firstElementChild !== outgoingCard) outgoingCard.remove();
+      };
+    }
+
+    function dealHand() {
+      const remainingCards = [...deck];
+      const slots = Array.from({ length: 4 }, () => {
+        const slot = document.createElement('div');
+        slot.className = 'card-slot';
+        slot.append(drawCard(remainingCards));
+        return slot;
+      });
+      hand.replaceChildren(...slots);
+      nextSlotToStop = 0;
+      stopButton.disabled = false;
+
+      replacementTimers.forEach(timer => clearTimeout(timer));
+      replacementTimers = slots.map((slot, index) => {
+        function updateSlot() {
+          replaceCard(slot);
+          replacementTimers[index] = setTimeout(updateSlot, 500);
+        }
+
+        return setTimeout(updateSlot, (index + 1) * 100);
+      });
+    }
+
+    function stopNextCard() {
+      const slot = hand.children[nextSlotToStop];
+      clearTimeout(replacementTimers[nextSlotToStop]);
+
+      const outgoingCard = slot.querySelector('.outgoing-card');
+      if (outgoingCard) {
+        outgoingCard.getAnimations().forEach(animation => animation.cancel());
+        outgoingCard.classList.remove('outgoing-card');
+        outgoingCard.removeAttribute('aria-hidden');
+        slot.replaceChildren(outgoingCard);
+      }
+
+      nextSlotToStop++;
+      stopButton.disabled = nextSlotToStop === hand.children.length;
+    }
+
+    document.getElementById('deal').addEventListener('click', dealHand);
+    stopButton.addEventListener('click', stopNextCard);
+    dealHand();
+  </script>
+</body>
+</html>
