@@ -26,6 +26,17 @@
       font: 700 clamp(2rem, 5vw, 3.5rem) Georgia, serif;
     }
 
+    .deck-picker {
+      margin-bottom: 1.5rem;
+    }
+
+    select {
+      margin-left: 0.5rem;
+      padding: 0.4rem;
+      border-radius: 0.35rem;
+      font: inherit;
+    }
+
     #hand {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -86,6 +97,14 @@
 <body>
   <main>
     <h1>Random Four Cards</h1>
+    <div class="deck-picker">
+      <label for="deck">Deck</label>
+      <select id="deck">
+        <option value="52">52 cards (full deck)</option>
+        <option value="32">32 cards (7–10, J, Q, K, A)</option>
+        <option value="20">20 cards (10, J, Q, K, A)</option>
+      </select>
+    </div>
     <div id="hand" aria-live="polite" aria-atomic="true"></div>
     <button id="stop-card" type="button">Stop Card</button>
     <button id="deal" type="button">Deal again</button>
@@ -95,9 +114,15 @@
     const suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
     const ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'];
     const deck = suits.flatMap(suit => ranks.map(rank => ({
+      rank,
       name: `${rank} of ${suit}`,
       imagePath: `cards/${rank.toLowerCase()}_of_${suit.toLowerCase()}.svg`
     })));
+    const deckRanks = {
+      32: new Set(['7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']),
+      20: new Set(['10', 'Jack', 'Queen', 'King', 'Ace'])
+    };
+    const deckSelect = document.getElementById('deck');
     const hand = document.getElementById('hand');
     const stopButton = document.getElementById('stop-card');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -114,10 +139,10 @@
       return image;
     }
 
-    function replaceCard(slot) {
+    function replaceCard(slot, activeDeck) {
       const outgoingCard = slot.firstElementChild;
       const displayedNames = new Set(Array.from(hand.querySelectorAll('img'), image => image.alt));
-      const availableCards = deck.filter(card => !displayedNames.has(card.name));
+      const availableCards = activeDeck.filter(card => !displayedNames.has(card.name));
       const incomingCard = drawCard(availableCards);
       slot.replaceChildren(incomingCard);
 
@@ -139,7 +164,9 @@
     }
 
     function dealHand() {
-      const remainingCards = [...deck];
+      const allowedRanks = deckRanks[deckSelect.value];
+      const activeDeck = allowedRanks ? deck.filter(card => allowedRanks.has(card.rank)) : deck;
+      const remainingCards = [...activeDeck];
       const slots = Array.from({ length: 4 }, () => {
         const slot = document.createElement('div');
         slot.className = 'card-slot';
@@ -153,7 +180,7 @@
       replacementTimers.forEach(timer => clearTimeout(timer));
       replacementTimers = slots.map((slot, index) => {
         function updateSlot() {
-          replaceCard(slot);
+          replaceCard(slot, activeDeck);
           replacementTimers[index] = setTimeout(updateSlot, spinInterval);
         }
 
@@ -178,6 +205,7 @@
     }
 
     document.getElementById('deal').addEventListener('click', dealHand);
+    deckSelect.addEventListener('change', dealHand);
     stopButton.addEventListener('click', stopNextCard);
     dealHand();
   </script>
