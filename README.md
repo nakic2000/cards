@@ -1,81 +1,34 @@
-# 52 Playing Cards Deck 🃏
+# Random Four Cards
 
-An interactive, responsive web application displaying all 52 standard French / Anglo-American playing cards arranged in rows. Built with clean, vanilla HTML5, CSS3, and JavaScript, featuring authentic vector card illustrations, an **Auto Mode** engine, and dynamic responsive scaling.
+Random Four Cards is a browser game where four playing cards scroll like reels. Stop them one at a time to reveal a four-card hand. The project also includes a viewer for all 52 cards. Both use the same SVG card artwork and run in the browser with plain HTML, CSS, and JavaScript.
 
-![Preview](cards/ace_of_spades.svg)
+## Get started
 
----
+Download or clone the repository and open [index.html](index.html) in a modern browser. Keep the HTML, JavaScript, and `cards/` directory together. No installation, build step, or server is required.
 
-## ✨ Features
+- [index.html](index.html) is the main game. It shows a 2×2 grid in phone portrait mode and a single row in landscape or on wider screens.
+- [random4.html](random4.html) runs the same game with a single-row layout at all screen sizes.
+- [deck.html](deck.html) opens the full-deck viewer.
 
-### 🎴 Authentic Playing Card Artwork
-- **Double-Headed Reversible Court Figures**: Traditional, detailed royal illustrations for all **Jacks**, **Queens**, and **Kings**:
-  - **♠ Spades**: King David of Israel, Queen Pallas Athena, and Jack Ogier the Dane.
-  - **♥ Hearts**: King Charlemagne ("The Suicide King"), Queen Judith, and Jack La Hire.
-  - **♦ Diamonds**: King Julius Caesar, Queen Rachel, and Jack Hector of Troy.
-  - **♣ Clubs**: King Alexander the Great, Queen Argine, and Jack Sir Lancelot.
-- **Classic 4-1-4 Number 9 Layout**: All Number 9 cards have their ninth pip positioned directly in the vertical and horizontal center between outer columns, matching standard casino/poker decks.
-- **Pure Vector Graphics (SVG)**: Razor-sharp on 4K, Retina, and mobile displays without pixelation.
+## How to play
 
-### 📐 Multiple Row & Grid Layouts
-- **4 Suits (Rows)** *(Default)*: Each suit (Spades, Hearts, Diamonds, Clubs) has its own dedicated row with Ace through King.
-- **13 Ranks (Rows)**: 13 rows grouped by rank (Aces row, 2s row, ... Kings row) across all 4 suits.
-- **Continuous Grid**: Fluid, responsive card grid.
-- **⚡ Auto-Fit Rows**: Automatically scales all 13 cards dynamically to fit within any window width without horizontal scrollbars.
-- **↔ Scroll Mode**: Allows fixed-width cards with smooth horizontal touch/wheel scrolling.
+1. Choose a deck. The game starts automatically with four distinct cards. Each position starts at a different time and scrolls to a random replacement every 500 ms.
+2. Select **Stop Card** to freeze the next position in reading order, from position 1 through position 4. If a card is mid-slide, the outgoing card is restored and held while the other reels keep moving.
+3. Select **Deal again** to start a fresh round with the same deck. Changing the deck also starts a fresh round and restarts all four reels.
 
-### ⚡ Interactive Auto Mode
-- **Automated Dealing**: Deals all 52 cards row by row with realistic drop-in flight animations.
-- **Royalty & Ace Spotlight**: Automatically highlights key court cards and displays lore tooltips.
-- **Deck Flip Demonstration**: Smooth 3D animation showcasing the royal blue casino lattice card backs.
-- **Controls**: Live status banner, Pause/Resume, Re-deal, Speed toggle (0.5x, 1x, 2x), and Audio Mute/Unmute.
+Each draw excludes cards already on display, including stopped cards and cards moving in or out of view. The game respects your device’s reduced-motion setting by swapping cards without the slide animation.
 
-### 🔊 Audio Synthesis & Themes
-- **Synthesized Card Sounds**: Realistic card snap, shuffle, and deal sounds generated client-side via the HTML5 Web Audio API (zero external audio files or dependencies).
-- **Three Visual Themes**:
-  - 🎨 **Emerald Felt Table**: Classic casino felt with radial lighting and subtle felt texture.
-  - 🌙 **Midnight Dark**: Sleek dark slate aesthetic with neon blue accents.
-  - ☀️ **Studio Light**: Clean, minimalist light gallery view.
+| Deck | Ranks in each of the four suits |
+| --- | --- |
+| 52 cards (default) | 2 through 10, Jack, Queen, King, Ace |
+| 32 cards | 7 through 10, Jack, Queen, King, Ace |
+| 20 cards | 10, Jack, Queen, King, Ace |
 
-### 🔍 Card Inspection Modal
-- Click or press Enter on any card to view a high-resolution spotlight display, card lore, traditional court figure background, suit symbolism, and Blackjack values.
+## Full-deck viewer
 
----
+Browse all 52 cards by suit, by rank, or in one grid. Select a card to inspect its artwork, suit, rank, and blackjack value. The viewer also supports filtering, shuffling, flipping cards, and switching themes. Turn on **Auto Mode** to see an animated deal, card spotlights, and a demonstration of the card backs.
 
-## 📁 Repository Structure
+## Project files
 
-```text
-.
-├── cards/                  # All 52 vector playing cards (SVG)
-│   ├── ace_of_spades.svg
-│   ├── king_of_hearts.svg
-│   ├── queen_of_diamonds.svg
-│   ├── jack_of_clubs.svg
-│   └── ... (all 52 cards)
-├── index.html              # Main standalone application (HTML/CSS/JS)
-├── README.md               # Documentation
-└── GEMINI.md               # Workspace guidelines
-```
-
----
-
-## 🚀 Getting Started
-
-No build tools, bundlers, or servers required!
-
-1. Clone or download this repository:
-   ```bash
-   git clone https://github.com/nakic2000/cards.git
-   cd cards
-   ```
-2. Open `index.html` in any modern web browser:
-   - **Linux / macOS**: `xdg-open index.html` or `open index.html`
-   - **Windows**: `start index.html`
-   - Or simply double-click `index.html`.
-
----
-
-## 📜 Credits & License
-
-- **Court Card & Pip Vectors**: Based on the public domain / CC0 vector playing card sets by David Bellot.
-- **Code & Layout**: Open source under the [MIT License](LICENSE).
+- [random4.js](random4.js) contains the shared rules, reel animation, and controls for both game pages.
+- [cards/](cards/) contains the 52 SVG card faces used in the game and viewer. The artwork is based on David Bellot’s vector playing cards.
