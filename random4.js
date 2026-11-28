@@ -14,6 +14,7 @@ const hand = document.getElementById('hand');
 const stopButton = document.getElementById('stop-card');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const spinInterval = 500;
+const incomingCardStopThreshold = 0.8;
 let replacementTimers = [];
 let nextSlotToStop = 0;
 
@@ -81,10 +82,20 @@ function stopNextCard() {
 
   const outgoingCard = slot.querySelector('.outgoing-card');
   if (outgoingCard) {
-    outgoingCard.getAnimations().forEach(animation => animation.cancel());
-    outgoingCard.classList.remove('outgoing-card');
-    outgoingCard.removeAttribute('aria-hidden');
-    slot.replaceChildren(outgoingCard);
+    const incomingCard = slot.firstElementChild;
+    const slotBounds = slot.getBoundingClientRect();
+    const cardBounds = incomingCard.getBoundingClientRect();
+    const visibleHeight = Math.max(0,
+      Math.min(slotBounds.bottom, cardBounds.bottom) - Math.max(slotBounds.top, cardBounds.top)
+    );
+    const selectedCard = visibleHeight > cardBounds.height * incomingCardStopThreshold
+      ? incomingCard
+      : outgoingCard;
+
+    selectedCard.getAnimations().forEach(animation => animation.cancel());
+    selectedCard.classList.remove('outgoing-card');
+    selectedCard.removeAttribute('aria-hidden');
+    slot.replaceChildren(selectedCard);
   }
 
   nextSlotToStop++;
