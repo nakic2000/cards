@@ -2,9 +2,12 @@ const suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
 const ranks = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'];
 const deck = suits.flatMap(suit => ranks.map(rank => ({
   rank,
+  suit,
   name: `${rank} of ${suit}`,
   imagePath: `cards/${rank.toLowerCase()}_of_${suit.toLowerCase()}.svg`
 })));
+const cardsByName = new Map(deck.map(card => [card.name, card]));
+const faceCardPoints = { Jack: 12, Queen: 13, King: 14, Ace: 15 };
 const deckRanks = {
   32: new Set(['7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']),
   20: new Set(['10', 'Jack', 'Queen', 'King', 'Ace'])
@@ -12,11 +15,19 @@ const deckRanks = {
 const deckSelect = document.getElementById('deck');
 const hand = document.getElementById('hand');
 const stopButton = document.getElementById('stop-card');
+const dealButton = document.getElementById('deal');
+const handScore = document.getElementById('hand-score');
+const gameTotal = document.getElementById('game-total');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const spinInterval = 500;
 const incomingCardStopThreshold = 0.8;
+const handsPerGame = 5;
+const gameOverDuration = 3000;
 let replacementTimers = [];
 let nextSlotToStop = 0;
+let completedHands = 0;
+let totalPoints = 0;
+let gameOverTimer;
 
 function drawCard(cards) {
   const index = Math.floor(Math.random() * cards.length);
@@ -64,6 +75,7 @@ function dealHand() {
   hand.replaceChildren(...slots);
   nextSlotToStop = 0;
   stopButton.disabled = false;
+  handScore.textContent = '';
 
   replacementTimers.forEach(timer => clearTimeout(timer));
   replacementTimers = slots.map((slot, index) => {
@@ -74,6 +86,60 @@ function dealHand() {
 
     return setTimeout(updateSlot, 700 - index * 100);
   });
+}
+
+function scoreHand(cards) {
+  const rankCounts = new Map();
+  for (const { rank } of cards) {
+    rankCounts.set(rank, (rankCounts.get(rank) ?? 0) + 1);
+  }
+
+  const counts = [...rankCounts.values()].sort((a, b) => b - a);
+  const sameSuit = cards.every(card => card.suit === cards[0].suit);
+  const royalRanks = ['Ace', 'King', 'Queen', 'Jack'].every(rank => rankCounts.has(rank));
+  const rankOrder = [...rankCounts.keys()].map(rank => ranks.indexOf(rank));
+  const consecutive = rankCounts.size === 4 &&
+    (royalRanks || Math.max(...rankOrder) - Math.min(...rankOrder) === 3);
+
+  if (sameSuit && royalRanks) return { name: 'Royal Flush', points: 50 };
+  if (sameSuit && consecutive) return { name: 'Straight Flush', points: 45 };
+  if (counts[0] === 4) return { name: 'Four Of a Kind', points: 40 };
+  if (sameSuit) return { name: 'Flush', points: 35 };
+  if (consecutive) return { name: 'Straight', points: 35 };
+  if (counts[0] === 3) return { name: 'Three Of a Kind', points: 30 };
+  if (counts[0] === 2 && counts[1] === 2) return { name: 'Two Pairs', points: 25 };
+  if (counts[0] === 2) return { name: 'Pair', points: 20 };
+
+  const points = Math.max(...cards.map(({ rank }) => faceCardPoints[rank] ?? Number(rank)));
+  return { name: 'High Card', points };
+}
+
+function showPoints(element, points, label) {
+  const detail = document.createElement('small');
+  detail.textContent = label;
+  element.replaceChildren(`${points} points`, detail);
+}
+
+function startGame() {
+  clearTimeout(gameOverTimer);
+  completedHands = 0;
+  totalPoints = 0;
+  gameTotal.textContent = '';
+  dealButton.classList.remove('game-over');
+  dealButton.textContent = 'Deal Again';
+  dealButton.disabled = false;
+  dealHand();
+}
+
+function showGameOver() {
+  dealButton.textContent = 'Game Over';
+  dealButton.disabled = true;
+  dealButton.classList.add('game-over');
+  gameOverTimer = setTimeout(() => {
+    dealButton.classList.remove('game-over');
+    dealButton.textContent = 'Play Again';
+    dealButton.disabled = false;
+  }, gameOverDuration);
 }
 
 function stopNextCard() {
@@ -100,9 +166,21 @@ function stopNextCard() {
 
   nextSlotToStop++;
   stopButton.disabled = nextSlotToStop === hand.children.length;
+  if (stopButton.disabled) {
+    const cards = Array.from(hand.children, slot => cardsByName.get(slot.firstElementChild.alt));
+    const { name, points } = scoreHand(cards);
+    showPoints(handScore, points, name);
+    completedHands++;
+    totalPoints += points;
+    showPoints(gameTotal, totalPoints, 'Total');
+    if (completedHands === handsPerGame) showGameOver();
+  }
 }
 
-document.getElementById('deal').addEventListener('click', dealHand);
-deckSelect.addEventListener('change', dealHand);
+dealButton.addEventListener('click', () => {
+  if (completedHands === handsPerGame) startGame();
+  else dealHand();
+});
+deckSelect.addEventListener('change', startGame);
 stopButton.addEventListener('click', stopNextCard);
-dealHand();
+startGame();

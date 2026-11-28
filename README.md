@@ -13,8 +13,8 @@ Download or clone the repository and open [index.html](index.html) in a modern b
 ## How to play
 
 1. Choose a deck. The game starts automatically with four distinct cards. Each position starts at a different time and scrolls to a random replacement every 500 ms.
-2. Select **Stop Card** to freeze the next position in reading order, from position 1 through position 4. During a slide, the incoming card stays if more than 80% of it is visible. Otherwise, the outgoing card is restored. The other reels keep moving.
-3. Select **Deal again** to start a fresh round with the same deck. Changing the deck also starts a fresh round and restarts all four reels.
+2. Select **Stop Card** to freeze the next position in reading order, from position 1 through position 4. During a slide, the incoming card stays if more than 80% of it is visible. Otherwise, the outgoing card is restored. The other reels keep moving. After the fourth stop, the game displays the hand name and points.
+3. Select **Deal Again** for the next hand. The running total beneath card 4 includes each completed hand. After five hands, the button shows **Game Over** for three seconds, then **Play Again**. Select it to clear the total and start a new game. Changing the deck also starts a new game.
 
 Each draw excludes cards already on display, including stopped cards and cards moving in or out of view. The game respects your device’s reduced-motion setting by swapping cards without the slide animation.
 

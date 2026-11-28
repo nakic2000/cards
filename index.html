@@ -22,6 +22,8 @@
     }
 
     main {
+      --hand-max-width: 20rem;
+      --card-columns: repeat(2, minmax(0, 1fr));
       width: 100%;
       max-width: 46rem;
       display: grid;
@@ -56,18 +58,18 @@
 
     select { max-width: 100%; }
 
-    #hand {
+    #hand, .actions {
       width: 100%;
-      max-width: 20rem;
+      max-width: var(--hand-max-width);
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: var(--card-columns);
       gap: clamp(0.5rem, 2vw, 1rem);
     }
 
     @media (min-width: 600px), (orientation: landscape) {
-      #hand {
-        max-width: min(100%, 122vh);
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+      main {
+        --hand-max-width: min(100%, 122vh);
+        --card-columns: repeat(4, minmax(0, 1fr));
       }
     }
 
@@ -88,14 +90,6 @@
       background: white;
     }
 
-    .actions {
-      width: 100%;
-      max-width: 24rem;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.75rem;
-    }
-
     button { cursor: pointer; }
 
     #stop-card { background: #efce73; }
@@ -109,6 +103,44 @@
       outline: 2px solid white;
       outline-offset: 3px;
     }
+
+    .actions {
+      align-items: center;
+      justify-items: start;
+    }
+
+    .actions button {
+      max-width: 100%;
+      padding-inline: clamp(0.45rem, 2vw, 0.75rem);
+    }
+
+    #deal.game-over { opacity: 1; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #deal.game-over { animation: game-over-flash 1s ease-in-out 3; }
+    }
+
+    @keyframes game-over-flash {
+      50% { opacity: 0.4; }
+    }
+
+    #hand-score, #game-total {
+      margin: 0;
+      color: #efce73;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: left;
+      max-width: 16rem;
+    }
+
+    #hand-score small, #game-total small {
+      display: block;
+      margin-top: 0.2rem;
+      color: #f7f4e8;
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+
   </style>
 </head>
 <body>
@@ -124,8 +156,10 @@
     </div>
     <div id="hand" aria-label="Four-card hand" role="group"></div>
     <div class="actions">
+      <p id="hand-score" role="status"></p>
       <button id="stop-card" type="button">Stop Card</button>
-      <button id="deal" type="button">Deal again</button>
+      <button id="deal" type="button">Deal Again</button>
+      <p id="game-total" role="status"></p>
     </div>
   </main>
   <script src="random4.js"></script>
